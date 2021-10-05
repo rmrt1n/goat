@@ -1,0 +1,12 @@
+services:
+  app:
+    depends_on: mongodb
+    build:
+      context: .
+      target: base
+    command: npm run dev -- --host
+    ports: 
+      - 3000:3000
+    volumes:
+      - .:/app
+      - /app/node_modules

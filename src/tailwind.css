@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#svelte { 
+  height: 100vh;
+  /* display: box; */
+}
+
+.form-card {
+  @apply px-8 py-4 border-2 rounded-lg;
+}
+
+.form-title {
+  @apply mt-4 text-2xl font-bold;
+}
+
+.form-subtitle {
+  @apply mt-2 mb-6 text-gray-400;
+}
+
+.form-input-text {
+  @apply mb-4 px-4 py-2 w-full border-2 rounded-md focus:outline-none;
+}
+
+.form-btn-submit {
+  @apply mb-4 px-4 py-2 w-full bg-green-600 text-lg font-bold text-white 
+         rounded-md cursor-pointer;
+}
