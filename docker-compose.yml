@@ -5,7 +5,7 @@ services:
       context: .
       target: base
     command: npm run dev -- --host
-    ports: 
+    ports:
       - 3000:3000
     volumes:
       - .:/app
