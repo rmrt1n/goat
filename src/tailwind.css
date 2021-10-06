@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-#svelte { 
+#svelte {
   height: 100vh;
   /* display: box; */
 }
