@@ -25,19 +25,19 @@ jobs:
       - name: build & push container image to ecr
         env:
           ECR_URL: ${{ secrets.ACCOUNTID }}.dkr.ecr.${{ secrets.REGION }}.amazonaws.com
-          IMAGE_NAME: goat:${ GITHUB_SHA }
+          IMAGE_TAG: $ECR_URL/goat:$GITHUB_SHA
         run: |
           aws ecr get-login-password --region ${{ secrets.REGION }} \
-            | docker login --username AWS --password-stdin ${ ECR_URL }
-          docker build . -t ${ ECR_URL }/${ IMAGE_NAME }
-          docker push ${ ECR_URL }/${ IMAGE_NAME }
+            | docker login --username AWS --password-stdin $ECR_URL
+          docker build . -t $IMAGE_TAG
+          docker push $IMAGE_TAG
 
   terraform-deploy:
     runs-on: ubuntu-latest
 
     env:
       TF_IMAGE_NAME: "goat"
-      TF_APP_VERSION: ${ GITHUB_SHA }
+      TF_APP_VERSION: $GITHUB_SHA
 
     steps:
       - name: setup terraform
@@ -54,8 +54,8 @@ jobs:
         if: github.event_name == 'pull_request'
         continue-on-error: true
         run: terraform plan -no-color \
-          -var "container_image_name=${ TF_IMAGE_NAME }" \
-          -var "app_version=${ TF_APP_VERSION }"
+          -var "container_image_name=$TF_IMAGE_NAME" \
+          -var "app_version=$TF_APP_VERSION"
 
       - name: update pull request
         uses: actions/github-script@0.9.0
@@ -90,8 +90,8 @@ jobs:
       - name: terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve \
-          -var "container_image_name=${ TF_IMAGE_NAME }" \
-          -var "app_version=${ TF_APP_VERSION }"
+          -var "container_image_name=$TF_IMAGE_NAME" \
+          -var "app_version=$TF_APP_VERSION"
 
       - name: print message
         run: echo 'deployment successful'
