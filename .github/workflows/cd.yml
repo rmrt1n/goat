@@ -23,15 +23,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.REGION }}
 
-      - name: build & push container image to ecr
+      - name: login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: build, tag, and push container
         env:
-          ECR_URL: ${{ secrets.ACCOUNTID }}.dkr.ecr.${{ secrets.REGION }}.amazonaws.com
-          IMAGE_TAG: $ECR_URL/goat:$GITHUB_SHA
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: "goat"
+          IMAGE_TAG: $GITHUB_SHA
         run: |
-          aws ecr get-login-password --region ${{ secrets.REGION }} \
-            | docker login --username AWS --password-stdin $ECR_URL
-          docker build . -t $IMAGE_TAG
-          docker push $IMAGE_TAG
+          docker build . -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   terraform-deploy:
     needs: build-push-container
