@@ -47,6 +47,9 @@ jobs:
       TF_APP_VERSION: ${{ github.sha }}
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        
       - name: setup terraform
         uses: hashicorp/setup-terraform@v1
 
