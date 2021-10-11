@@ -63,11 +63,11 @@ resource "aws_elastic_beanstalk_application" "eb_app" {
 
 # eb app version
 resource "aws_elastic_beanstalk_application_version" "eb_app_ver" {
-  name   = var.app_version
+  name        = var.app_version
   application = aws_elastic_beanstalk_application.eb_app.name
-  bucket = aws_s3_bucket.dockerrun_bucket.id
-  key    = local_file.dockerrun.filename
-  tags   = local.tags
+  bucket      = aws_s3_bucket.dockerrun_bucket.id
+  key         = local_file.dockerrun.filename
+  tags        = local.tags
 }
 
 # eb application environment uses default instance profile for eb
