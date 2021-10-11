@@ -1,0 +1,97 @@
+name: CD
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-push-container:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure aws creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.REGION }}
+
+      - name: build & push container image to ecr
+        env:
+          ECR_URL: ${{ secrets.ACCOUNTID }}.dkr.ecr.${{ secrets.REGION }}.amazonaws.com
+          IMAGE_NAME: goat:${ GITHUB_SHA }
+        run: |
+          aws ecr get-login-password --region ${{ secrets.REGION }} \
+            | docker login --username AWS --password-stdin ${ ECR_URL }
+          docker build . -t ${ ECR_URL }/${ IMAGE_NAME }
+          docker push ${ ECR_URL }/${ IMAGE_NAME }
+
+  terraform-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      TF_IMAGE_NAME: "goat"
+      TF_APP_VERSION: ${ GITHUB_SHA }
+
+    steps:
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: terraform format, init,  and validate
+        run: |
+          terraform format -check
+          terraform init
+          terraform validate -no-color
+
+      - name: terraform plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: terraform plan -no-color \
+          -var "container_image_name=${ TF_IMAGE_NAME }" \
+          -var "app_version=${ TF_APP_VERSION }"
+
+      - name: update pull request
+        uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `
+            ### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: terraform plan status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: terraform apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve \
+          -var "container_image_name=${ TF_IMAGE_NAME }" \
+          -var "app_version=${ TF_APP_VERSION }"
+
+      - name: print message
+        run: echo 'deployment successful'
