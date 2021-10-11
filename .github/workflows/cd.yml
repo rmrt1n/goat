@@ -54,21 +54,21 @@ jobs:
         uses: hashicorp/setup-terraform@v1
 
       - name: terraform format
-        run: cd terraform && terraform fmt -check
+        run: terraform -chdir=./terraform fmt -check
 
       - name: terraform init
-        run: terraform init
+        run: terraform -chdir=./terraform init
 
       - name: terraform validate
-        run: terraform validate -no-color
+        run: terraform -chdir=./terraform validate -no-color
 
       - name: terraform plan
         id: plan
         if: github.event_name == 'pull_request'
         continue-on-error: true
-        run: terraform plan -no-color \
-          -var "container_image_name=$TF_IMAGE_NAME" \
-          -var "app_version=$TF_APP_VERSION"
+        run: terraform -chdir=./terraform plan -no-color \
+          -var container_image_name=$TF_IMAGE_NAME \
+          -var app_version=$TF_APP_VERSION
 
       - name: update pull request
         uses: actions/github-script@0.9.0
@@ -102,9 +102,9 @@ jobs:
 
       - name: terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve \
-          -var "container_image_name=$TF_IMAGE_NAME" \
-          -var "app_version=$TF_APP_VERSION"
+        run: terraform -chdir=./terraform apply -auto-approve \
+          -var container_image_name=$TF_IMAGE_NAME \
+          -var app_version=$TF_APP_VERSION
 
       - name: print message
         run: echo 'deployment successful'
