@@ -14,12 +14,12 @@ resource "local_file" "dockerrun" {
   content = jsonencode({
     AWSEBDockerrunVersion = "1"
     Image = {
-      Name = "${local.ecr_url}/${var.container_image_name}"
+      Name   = "${local.ecr_url}/${var.container_image_name}"
       Update = "true"
     }
     Ports = {
       ContainerPort = var.container_port
-      HostPort = "80"
+      HostPort      = "80"
     }
   })
   filename = "${path.module}/Dockerrun.aws.json"
@@ -28,7 +28,7 @@ resource "local_file" "dockerrun" {
 # s3 bucket to store dockerrun file
 resource "aws_s3_bucket" "dockerrun_bucket" {
   bucket = "goat-s3-dockerrun-bucket"
-  acl = "private"
+  acl    = "private"
 
   versioning {
     enabled = true
@@ -47,38 +47,38 @@ resource "aws_s3_bucket" "dockerrun_bucket" {
 
 # bucket object
 resource "aws_s3_bucket_object" "dockerrun_object" {
-  key = "dockerrun.zip"
+  key    = "dockerrun.zip"
   bucket = aws_s3_bucket.dockerrun_bucket.id
   # source = data.archive_file.dockerrun_zip.output_path
   source = local_file.dockerrun.filename
-  tags = local.tags
+  tags   = local.tags
 }
 
 # eb application
 resource "aws_elastic_beanstalk_application" "eb_app" {
-  name = "goat"
+  name        = "goat"
   description = "github clone"
-  tags = local.tags
+  tags        = local.tags
 }
 
 # eb app version
 resource "aws_elastic_beanstalk_application_version" "eb_app_ver" {
-  name = var.app_version
+  name   = var.app_version
   bucket = aws_s3_bucket.dockerrun_bucket.id
-  key = local_file.dockerrun.filename
-  tags = local.tags
+  key    = local_file.dockerrun.filename
+  tags   = local.tags
 }
 
 # eb application environment uses default instance profile for eb
 resource "aws_elastic_beanstalk_environment" "eb_app_env" {
-  name = "goat-env"
-  application = aws_elastic_beanstalk_application.eb_app.name
+  name                = "goat-env"
+  application         = aws_elastic_beanstalk_application.eb_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.4.7 running Docker"
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
-    name = "IamInstanceProfile"
-    value = "aws-elasticbeanstalk-ec2-role"
+    name      = "IamInstanceProfile"
+    value     = "aws-elasticbeanstalk-ec2-role"
   }
 
   tags = local.tags
