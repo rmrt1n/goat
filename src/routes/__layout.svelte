@@ -17,7 +17,7 @@
     }
   });
 
-  const authenticated = !$session.user && !$session.user.guest;
+  const authenticated = $session.user && !$session.user.guest;
   /* console.log('session', $session) */
 </script>
 

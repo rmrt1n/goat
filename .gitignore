@@ -1,5 +1,9 @@
 **/.DS_Store
-node_modules
-build
-.svelte-kit
-.env
+**/node_modules
+**/build
+**/.svelte-kit
+**/.env
+**/.terraform
+**/*.tfvars*
+**/*.tfstate*
+**/*Dockerrun.aws.json
