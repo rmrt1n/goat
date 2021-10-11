@@ -49,13 +49,13 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-        run: cd terraform/
         
       - name: setup terraform
         uses: hashicorp/setup-terraform@v1
 
       - name: terraform format, init,  and validate
         run: |
+          cd terraform/
           terraform fmt -check
           terraform init
           terraform validate -no-color
