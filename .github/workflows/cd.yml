@@ -8,6 +8,7 @@ on:
   pull_request:
 
 jobs:
+  
   build-push-container:
     runs-on: ubuntu-latest
 
@@ -33,6 +34,7 @@ jobs:
           docker push $IMAGE_TAG
 
   terraform-deploy:
+    needs: build-push-container
     runs-on: ubuntu-latest
 
     env:
@@ -45,7 +47,7 @@ jobs:
 
       - name: terraform format, init,  and validate
         run: |
-          terraform format -check
+          terraform fmt -check
           terraform init
           terraform validate -no-color
 
