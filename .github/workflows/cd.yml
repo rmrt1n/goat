@@ -1,0 +1,114 @@
+name: CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  
+  build-push-container:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure aws creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.REGION }}
+
+      - name: login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: build, tag, and push container
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: "goat-ecr"
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build .\
+            --build-arg "supabase_url=${{ secrets.SUPABASE_URL }}" \
+            --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}" \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  terraform-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      TF_IMAGE_NAME: "goat"
+      TF_APP_VERSION: ${{ github.sha }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure aws creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.REGION }}
+        
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: terraform format
+        run: terraform -chdir=./terraform fmt -check
+
+      - name: terraform init
+        run: terraform -chdir=./terraform init
+
+      - name: terraform validate
+        run: terraform -chdir=./terraform validate -no-color
+
+      - name: terraform plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: terraform -chdir=./terraform plan -no-color -var="container_image_name=$TF_IMAGE_NAME" -var="app_version=$TF_APP_VERSION"
+
+      - name: update pull request
+        uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `
+            ### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: terraform plan status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: terraform apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=./terraform apply -auto-approve -var="container_image_name=$TF_IMAGE_NAME" -var="app_version=$TF_APP_VERSION"
+
+      - name: print message
+        run: echo 'deployment successful'
