@@ -30,7 +30,7 @@ jobs:
       - name: build, tag, and push container
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: "goat"
+          ECR_REPOSITORY: "goat-ecr"
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build .\
