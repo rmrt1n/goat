@@ -47,7 +47,7 @@ resource "aws_s3_bucket" "dockerrun_bucket" {
 
 # bucket object
 resource "aws_s3_bucket_object" "dockerrun_object" {
-  key    = local_file.dockerrun_bucket.filename
+  key    = local_file.dockerrun.filename
   bucket = aws_s3_bucket.dockerrun_bucket.id
   source = local_file.dockerrun.filename
   tags   = local.tags
