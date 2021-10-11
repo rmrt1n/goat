@@ -49,6 +49,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+        run: cd terraform/
         
       - name: setup terraform
         uses: hashicorp/setup-terraform@v1
