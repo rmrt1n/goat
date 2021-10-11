@@ -6,6 +6,10 @@ RUN npm ci
 
 # building stage
 FROM base AS build
+ARG supabase_url
+ARG supabase_anon_key
+ENV VITE_SUPABASE_URL=${supabase_url}
+ENV VITE_SUPABASE_ANON_KEY=${supabase_anon_key}
 COPY . ./
 RUN npm run build
 RUN npm prune --production
