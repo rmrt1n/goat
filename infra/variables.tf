@@ -13,9 +13,5 @@ variable "container_port" {
 variable "container_image_name" {
   description = "name of container image"
   type        = string
-}
-
-variable "app_version" {
-  description = "application version (uses github commit hash)"
-  type        = string
+  default     = "goat-ecr"
 }

@@ -34,11 +34,14 @@ jobs:
           ECR_REPOSITORY: goat-ecr
           IMAGE_TAG: ${{ github.sha }}
           APP_DIR: ./app
+        # https://stackoverflow.com/questions/58695853/docker-image-tagging-in-ecr
         run: |
-          docker build $APP_DIR\
+          docker build $APP_DIR \
             --build-arg "supabase_url=${{ secrets.SUPABASE_URL }}" \
             --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}" \
-            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   terraform-deploy:
@@ -48,8 +51,7 @@ jobs:
         working-directory: ./infra
 
     env:
-      TF_IMAGE_NAME: goat
-      TF_APP_VERSION: ${{ github.sha }}
+      TF_IMAGE_NAME: goat-ecr
 
     steps:
       - name: checkout
@@ -73,7 +75,6 @@ jobs:
       - name: setup tfvars 
         run: |
           echo "container_image_name = \"$TF_IMAGE_NAME\"" > variables.auto.tfvars
-          echo "app_version = \"$TF_APP_VERSION\"" >> variables.auto.tfvars
 
       - name: terraform plan
         id: plan
@@ -114,6 +115,3 @@ jobs:
       - name: terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
-
-      - name: print message
-        run: echo 'deployment successful'
