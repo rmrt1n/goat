@@ -2,7 +2,6 @@ terraform {
   backend "remote" {
     hostname     = "app.terraform.io"
     organization = "rmrt1n"
-
     workspaces {
       name = "github-actions-goat"
     }
@@ -35,18 +34,16 @@ resource "local_file" "dockerrun" {
       }
     ]
   })
-  filename = "${path.module}/${local.s3_key}"
+  filename = local.dockerrun_filename
 }
 
 # s3 bucket to store dockerrun file
 resource "aws_s3_bucket" "dockerrun_bucket" {
   bucket = "goat-s3-dockerrun-bucket"
   acl    = "private"
-
   versioning {
     enabled = true
   }
-
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -54,13 +51,12 @@ resource "aws_s3_bucket" "dockerrun_bucket" {
       }
     }
   }
-
   tags = local.tags
 }
 
 # bucket object
 resource "aws_s3_bucket_object" "dockerrun_object" {
-  key    = local.s3_key
+  key    = local.dockerrun_filename
   bucket = aws_s3_bucket.dockerrun_bucket.id
   source = local_file.dockerrun.filename
   tags   = local.tags
@@ -78,7 +74,7 @@ resource "aws_elastic_beanstalk_application_version" "eb_app_ver" {
   name        = local.dockerrun_hash
   application = aws_elastic_beanstalk_application.eb_app.name
   bucket      = aws_s3_bucket.dockerrun_bucket.id
-  key         = local.s3_key
+  key         = local.dockerrun_filename
   tags        = local.tags
 }
 
@@ -96,6 +92,5 @@ resource "aws_elastic_beanstalk_environment" "eb_app_env" {
     name      = "IamInstanceProfile"
     value     = "aws-elasticbeanstalk-ec2-role"
   }
-
   tags = local.tags
 }
