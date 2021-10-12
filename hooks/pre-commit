@@ -1,0 +1,22 @@
+#!/bin/bash
+
+DIR_BASE="$PWD"
+DIR_APP="$DIR_BASE/app"
+DIR_INFRA="$DIR_BASE/infra"
+
+# format application code
+if ! git diff --quiet HEAD $DIR_APP; then
+  cd $DIR_APP 
+  npm run format
+  npm run lint
+fi
+
+# format infrastructure code
+if ! git diff --quiet HEAD $DIR_INFRA; then
+  cd $DIR_INFRA
+  terraform fmt
+  terraform validate
+fi
+
+# changed files are not added automatically
+cd $DIR_BASE && git add .
