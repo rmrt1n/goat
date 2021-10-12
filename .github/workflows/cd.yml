@@ -38,7 +38,7 @@ jobs:
           # https://stackoverflow.com/questions/58695853/docker-image-tagging-in-ecr
           docker build $APP_DIR\
             --build-arg "supabase_url=${{ secrets.SUPABASE_URL }}" \
-            --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}"
+            --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}" \
             $ECR_REPOSITORY
           docker push $ECR_REPOSITORY
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
