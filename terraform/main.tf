@@ -30,7 +30,7 @@ resource "local_file" "dockerrun" {
     }
     Ports = {
       ContainerPort = var.container_port
-      HostPort      = "80"
+      HostPort      = 80
     }
   })
   filename = "${path.module}/${local.s3_key}"

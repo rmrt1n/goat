@@ -7,3 +7,4 @@
 **/*.tfvars*
 **/*.tfstate*
 **/*Dockerrun.aws.json
+.elasticbeanstalk/*
