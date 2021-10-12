@@ -15,8 +15,3 @@ variable "container_image_name" {
   type        = string
   default     = "goat-ecr"
 }
-
-variable "app_version" {
-  description = "application version (uses github commit hash)"
-  type        = string
-}
