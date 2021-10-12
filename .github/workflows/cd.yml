@@ -34,9 +34,9 @@ jobs:
           ECR_REPOSITORY: goat-ecr
           IMAGE_TAG: ${{ github.sha }}
           APP_DIR: ./app
+        # https://stackoverflow.com/questions/58695853/docker-image-tagging-in-ecr
         run: |
-          # https://stackoverflow.com/questions/58695853/docker-image-tagging-in-ecr
-          docker build $APP_DIR\
+          docker build $APP_DIR \
             --build-arg "supabase_url=${{ secrets.SUPABASE_URL }}" \
             --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}" \
             $ECR_REPOSITORY
