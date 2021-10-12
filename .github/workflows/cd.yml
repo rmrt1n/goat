@@ -49,7 +49,6 @@ jobs:
 
     env:
       TF_IMAGE_NAME: goat-ecr
-      TF_APP_VERSION: ${{ github.sha }}
 
     steps:
       - name: checkout
@@ -73,7 +72,6 @@ jobs:
       - name: setup tfvars 
         run: |
           echo "container_image_name = \"$TF_IMAGE_NAME\"" > variables.auto.tfvars
-          echo "app_version = \"$TF_APP_VERSION\"" >> variables.auto.tfvars
 
       - name: terraform plan
         id: plan
@@ -114,6 +112,3 @@ jobs:
       - name: terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
-
-      - name: print message
-        run: echo 'deployment successful'

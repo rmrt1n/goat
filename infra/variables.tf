@@ -13,6 +13,7 @@ variable "container_port" {
 variable "container_image_name" {
   description = "name of container image"
   type        = string
+  default     = "goat-ecr"
 }
 
 variable "app_version" {

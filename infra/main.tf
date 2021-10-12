@@ -24,7 +24,7 @@ resource "local_file" "dockerrun" {
   content = jsonencode({
     AWSEBDockerrunVersion = "1"
     Image = {
-      Name   = "${local.ecr_url}/${var.container_image_name}"
+      Name   = "${local.ecr_url}/${var.container_image_name}:latest"
       Update = "true"
     }
     Ports = [
@@ -85,7 +85,7 @@ resource "aws_elastic_beanstalk_environment" "eb_app_env" {
   solution_stack_name = "64bit Amazon Linux 2 v3.4.7 running Docker"
 
   # this doesn't work for now
-  # version_label       = aws_elastic_beanstalk_application_version.eb_app_ver.name
+  version_label = aws_elastic_beanstalk_application_version.eb_app_ver.name
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
