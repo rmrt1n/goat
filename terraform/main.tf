@@ -28,10 +28,12 @@ resource "local_file" "dockerrun" {
       Name   = "${local.ecr_url}/${var.container_image_name}"
       Update = "true"
     }
-    Ports = {
-      ContainerPort = var.container_port
-      HostPort      = 80
-    }
+    Ports = [
+      {
+        ContainerPort = var.container_port
+        HostPort      = 80
+      }
+    ]
   })
   filename = "${path.module}/${local.s3_key}"
 }
