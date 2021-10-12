@@ -75,7 +75,7 @@ resource "aws_elastic_beanstalk_application" "eb_app" {
 
 # eb app version
 resource "aws_elastic_beanstalk_application_version" "eb_app_ver" {
-  name        = var.app_version
+  name        = local.dockerrun_hash
   application = aws_elastic_beanstalk_application.eb_app.name
   bucket      = aws_s3_bucket.dockerrun_bucket.id
   key         = local.s3_key
