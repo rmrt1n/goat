@@ -71,8 +71,8 @@ jobs:
       # run variables not supported by remote backend. use '*.auto.tfvars' file
       - name: setup tfvars 
         run: |
-          echo "container_image_name = $TF_IMAGE_NAME" > variables.auto.tfvars
-          echo "app_version = $TF_APP_VERSION" >> variables.auto.tfvars
+          echo "container_image_name = \"$TF_IMAGE_NAME\"" > variables.auto.tfvars
+          echo "app_version = \"$TF_APP_VERSION\"" >> variables.auto.tfvars
 
       - name: terraform plan
         id: plan
