@@ -33,7 +33,7 @@ resource "local_file" "dockerrun" {
       HostPort      = "80"
     }
   })
-  filename = "${path.module}/${local.dockerrun_filename}"
+  filename = "${path.module}/${local.s3_key}"
 }
 
 # s3 bucket to store dockerrun file
@@ -58,7 +58,7 @@ resource "aws_s3_bucket" "dockerrun_bucket" {
 
 # bucket object
 resource "aws_s3_bucket_object" "dockerrun_object" {
-  key    = local.dockerrun_filename
+  key    = local.s3_key
   bucket = aws_s3_bucket.dockerrun_bucket.id
   source = local_file.dockerrun.filename
   tags   = local.tags
@@ -76,7 +76,7 @@ resource "aws_elastic_beanstalk_application_version" "eb_app_ver" {
   name        = var.app_version
   application = aws_elastic_beanstalk_application.eb_app.name
   bucket      = aws_s3_bucket.dockerrun_bucket.id
-  key         = local_file.dockerrun.filename
+  key         = local.s3_key
   tags        = local.tags
 }
 
