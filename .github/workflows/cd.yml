@@ -48,7 +48,7 @@ jobs:
         working-directory: ./infra
 
     env:
-      TF_IMAGE_NAME: goat
+      TF_IMAGE_NAME: goat-ecr
       TF_APP_VERSION: ${{ github.sha }}
 
     steps:
