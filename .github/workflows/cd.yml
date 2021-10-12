@@ -31,10 +31,11 @@ jobs:
       - name: build, tag, and push container
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: "goat-ecr"
+          ECR_REPOSITORY: goat-ecr
           IMAGE_TAG: ${{ github.sha }}
+          APP_DIR: ./app
         run: |
-          docker build .\
+          docker build $APP_DIR\
             --build-arg "supabase_url=${{ secrets.SUPABASE_URL }}" \
             --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}" \
             --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -44,10 +45,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ./infra
 
     env:
-      TF_IMAGE_NAME: "goat"
+      TF_IMAGE_NAME: goat
       TF_APP_VERSION: ${{ github.sha }}
 
     steps:
