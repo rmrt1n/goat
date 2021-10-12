@@ -68,14 +68,17 @@ jobs:
       - name: terraform validate
         run: terraform validate -no-color
 
+      # run variables not supported by remote backend. use '*.auto.tfvars' file
+      - name: setup tfvars 
+        run: |
+          echo "container_image_name = $TF_IMAGE_NAME" > variables.auto.tfvars
+          echo "app_version = $TF_APP_VERSION" >> variables.auto.tfvars
+
       - name: terraform plan
         id: plan
         if: github.event_name == 'pull_request'
         continue-on-error: true
-        run: |
-          terraform plan -no-color \
-            -var "container_image_name=$TF_IMAGE_NAME" \
-            -var "app_version=$TF_APP_VERSION"
+        run: terraform plan -no-color
 
       - name: update pull request
         uses: actions/github-script@0.9.0
@@ -109,10 +112,7 @@ jobs:
 
       - name: terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          terraform apply -auto-approve \
-            -var "container_image_name=$TF_IMAGE_NAME" \
-            -var "app_version=$TF_APP_VERSION"
+        run: terraform apply -auto-approve
 
       - name: print message
         run: echo 'deployment successful'
