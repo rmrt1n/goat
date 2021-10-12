@@ -33,7 +33,7 @@ resource "local_file" "dockerrun" {
       HostPort      = "80"
     }
   })
-  filename = "${path.module}/Dockerrun.aws.json"
+  filename = "${path.module}/${local.dockerrun_filename}"
 }
 
 # s3 bucket to store dockerrun file
@@ -58,7 +58,7 @@ resource "aws_s3_bucket" "dockerrun_bucket" {
 
 # bucket object
 resource "aws_s3_bucket_object" "dockerrun_object" {
-  key    = local_file.dockerrun.filename
+  key    = local.dockerrun_filename
   bucket = aws_s3_bucket.dockerrun_bucket.id
   source = local_file.dockerrun.filename
   tags   = local.tags
