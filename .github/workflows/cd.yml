@@ -38,8 +38,7 @@ jobs:
         run: |
           docker build $APP_DIR \
             --build-arg "supabase_url=${{ secrets.SUPABASE_URL }}" \
-            --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}" \
-            $ECR_REPOSITORY
+            --build-arg "supabase_anon_key=${{ secrets.SUPABASE_ANON_KEY }}"
           docker push $ECR_REPOSITORY
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
