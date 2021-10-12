@@ -42,6 +42,9 @@ jobs:
 
   terraform-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
 
     env:
       TF_IMAGE_NAME: "goat"
@@ -51,30 +54,28 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: configure aws creds
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.REGION }}
-        
       - name: setup terraform
         uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: terraform format
-        run: terraform -chdir=./terraform fmt -check
+        run: terraform fmt -check
 
       - name: terraform init
-        run: terraform -chdir=./terraform init
+        run: terraform init
 
       - name: terraform validate
-        run: terraform -chdir=./terraform validate -no-color
+        run: terraform validate -no-color
 
       - name: terraform plan
         id: plan
         if: github.event_name == 'pull_request'
         continue-on-error: true
-        run: terraform -chdir=./terraform plan -no-color -var="container_image_name=$TF_IMAGE_NAME" -var="app_version=$TF_APP_VERSION"
+        run: |
+          terraform plan -no-color \
+            -var "container_image_name=$TF_IMAGE_NAME" \
+            -var "app_version=$TF_APP_VERSION"
 
       - name: update pull request
         uses: actions/github-script@0.9.0
@@ -108,7 +109,10 @@ jobs:
 
       - name: terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=./terraform apply -auto-approve -var="container_image_name=$TF_IMAGE_NAME" -var="app_version=$TF_APP_VERSION"
+        run: |
+          terraform apply -auto-approve \
+            -var "container_image_name=$TF_IMAGE_NAME" \
+            -var "app_version=$TF_APP_VERSION"
 
       - name: print message
         run: echo 'deployment successful'

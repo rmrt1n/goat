@@ -1,3 +1,14 @@
+terraform {
+  backend "remote" {
+    hostname = "app.terraform.io"
+    organization = "rmrt1n"
+
+    workspaces = {
+      name = "github-actions-goat"
+    }
+  }
+}
+
 provider "aws" {
   region = var.region
 }
