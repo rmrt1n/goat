@@ -3,7 +3,7 @@ terraform {
     hostname     = "app.terraform.io"
     organization = "rmrt1n"
 
-    workspaces = {
+    workspaces {
       name = "github-actions-goat"
     }
   }
