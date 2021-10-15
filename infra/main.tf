@@ -62,6 +62,25 @@ resource "aws_s3_bucket_object" "dockerrun_object" {
   tags   = local.tags
 }
 
+# iam instance profile for eb
+resource "aws_iam_instance_profile" "eb_ec2_profile" {
+  name = "goat-aws-elasticbeanstalk-ec2-profile"
+  role = aws_iam_role.eb_ec2_role.name
+  tags = local.tags
+}
+
+# role for profile
+resource "aws_iam_role" "eb_ec2_role" {
+  name               = "goat-aws-elasticbeanstalk-ec2-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_policy.json
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier",
+    "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  ]
+  tags = local.tags
+}
+
 # eb application
 resource "aws_elastic_beanstalk_application" "eb_app" {
   name        = "goat"
@@ -83,14 +102,11 @@ resource "aws_elastic_beanstalk_environment" "eb_app_env" {
   name                = "goat-env"
   application         = aws_elastic_beanstalk_application.eb_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.4.7 running Docker"
-
-  # this doesn't work for now
-  version_label = aws_elastic_beanstalk_application_version.eb_app_ver.name
-
+  version_label       = aws_elastic_beanstalk_application_version.eb_app_ver.name
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = "aws-elasticbeanstalk-ec2-role"
+    value     = aws_iam_instance_profile.eb_ec2_profile.name
   }
   tags = local.tags
 }
